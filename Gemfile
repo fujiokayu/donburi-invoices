@@ -15,6 +15,9 @@ gem "pg", "~> 1.5"
 # Auth
 gem "bcrypt", "~> 3.1.20"
 
+# Rate limiting for the publicly hosted instance
+gem "rack-attack", "~> 6.7"
+
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
