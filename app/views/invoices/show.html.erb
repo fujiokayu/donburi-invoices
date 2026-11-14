@@ -1,0 +1,45 @@
+<% content_for :title, @invoice.number %>
+
+<div class="page-head">
+  <h1><%= @invoice.number %></h1>
+  <div class="actions">
+    <%= link_to "PDF 出力", pdf_invoice_path(@invoice), class: "btn" %>
+    <%= link_to "編集", edit_invoice_path(@invoice), class: "btn" %>
+    <%= button_to "削除", @invoice, method: :delete, class: "btn btn-danger",
+                  form: { data: { turbo_confirm: "削除しますか？" } } %>
+  </div>
+</div>
+
+<table class="kv">
+  <tr><th>請求先</th><td><%= @invoice.customer_name %></td></tr>
+  <tr><th>金額</th><td>¥<%= number_with_delimiter(@invoice.amount) %></td></tr>
+  <tr><th>状態</th><td><%= t("invoice.status.#{@invoice.status}") %></td></tr>
+  <tr><th>支払期限</th><td><%= @invoice.due_on&.strftime("%Y-%m-%d") %></td></tr>
+  <% if @invoice.bank_account %>
+    <tr><th>お振込先</th><td><%= @invoice.bank_account.label %></td></tr>
+  <% end %>
+</table>
+
+<% if @invoice.invoice_lines.any? %>
+  <h2>明細</h2>
+  <table class="list">
+    <thead>
+      <tr><th>項目</th><th class="right">数量</th><th class="right">単価</th><th class="right">小計</th></tr>
+    </thead>
+    <tbody>
+      <% @invoice.invoice_lines.each do |line| %>
+        <tr>
+          <td><%= line.description %></td>
+          <td class="right"><%= line.quantity %></td>
+          <td class="right">¥<%= number_with_delimiter(line.unit_price) %></td>
+          <td class="right">¥<%= number_with_delimiter(line.subtotal) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<% if @invoice.notes.present? %>
+  <h2>備考</h2>
+  <p class="notes"><%= @invoice.notes %></p>
+<% end %>

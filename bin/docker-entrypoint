@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+# If running the rails server then prepare the database. Match the "server"
+# subcommand wherever it sits in the args ("bin/rails server -b 0.0.0.0"), not
+# only as the next-to-last token.
+if [[ "${1}" == *"rails" && "${2}" == "server" ]]; then
+  ./bin/rails db:prepare
+fi
+
+exec "${@}"

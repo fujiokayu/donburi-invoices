@@ -1,0 +1,22 @@
+# Copy to terraform.tfvars and edit.
+
+region      = "ap-northeast-1"
+project     = "donburi"
+environment = "exercise"
+
+# Required: sign-up invite code for the exercise instance (rotate per event).
+invite_code = "change-me-per-event"
+
+# Optional custom domain (otherwise the *.cloudfront.net domain is used).
+# The certificate must be an ACM cert in us-east-1 covering domain_name.
+# domain_name         = "donburi.example.com"
+# acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx"
+
+# Sizing (defaults are fine for a one-day exercise).
+# desired_count = 1
+# task_cpu      = 512
+# task_memory   = 1024
+
+# Optional: egress IP(s) of the host driving preparation traffic, so the app
+# resolves the forwarded client IP instead of a CloudFront edge address.
+# trusted_client_ips = "203.0.113.10"

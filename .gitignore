@@ -1,0 +1,34 @@
+# Rails
+/.bundle
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+/public/assets
+/config/master.key
+/config/credentials/*.key
+
+# Environment
+/.env
+/.env.*
+!/.env.example
+
+# Leftover from the previous (Next.js) implementation — never commit
+/node_modules
+/.next
+/generated
+*.db
+*.tsbuildinfo
+/.windsurf
+/.agents
+skills-lock.json
+
+# OS
+.DS_Store
+/next-env.d.ts
+.claude/

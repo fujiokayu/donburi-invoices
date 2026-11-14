@@ -1,0 +1,19 @@
+ja:
+  activerecord:
+    models:
+      invoice: 請求書
+      organization: テナント
+      user: ユーザー
+    attributes:
+      invoice:
+        number: 請求書番号
+        customer_name: 請求先
+        amount: 金額
+        status: 状態
+        notes: 備考
+        due_on: 支払期限
+  invoice:
+    status:
+      draft: 下書き
+      sent: 送付済み
+      paid: 入金済み

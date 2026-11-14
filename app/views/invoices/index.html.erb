@@ -1,0 +1,28 @@
+<% content_for :title, "請求書一覧" %>
+
+<div class="page-head">
+  <h1>請求書</h1>
+  <%= link_to "新規作成", new_invoice_path, class: "btn btn-primary" %>
+</div>
+
+<% if @invoices.empty? %>
+  <p class="muted">まだ請求書がありません。「新規作成」から追加してください。</p>
+<% else %>
+  <table class="list">
+    <thead>
+      <tr><th>番号</th><th>請求先</th><th class="right">金額</th><th>状態</th><th>作成日</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @invoices.each do |invoice| %>
+        <tr>
+          <td><%= link_to invoice.number, invoice %></td>
+          <td><%= invoice.customer_name %></td>
+          <td class="right">¥<%= number_with_delimiter(invoice.amount) %></td>
+          <td><%= t("invoice.status.#{invoice.status}") %></td>
+          <td><%= invoice.created_at.strftime("%Y-%m-%d") %></td>
+          <td><%= link_to "PDF", pdf_invoice_path(invoice) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

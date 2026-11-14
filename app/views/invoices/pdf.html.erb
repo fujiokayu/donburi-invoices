@@ -1,0 +1,36 @@
+<h1>請求書</h1>
+<p class="muted">請求書番号: <%= @invoice.number %> / 発行: <%= @invoice.organization.name %></p>
+
+<table>
+  <tr><th>請求先</th><td><%= @invoice.customer_name %></td></tr>
+  <tr><th>支払期限</th><td><%= @invoice.due_on&.strftime("%Y年%m月%d日") %></td></tr>
+  <tr><th>状態</th><td><%= t("invoice.status.#{@invoice.status}") %></td></tr>
+</table>
+
+<% if @invoice.invoice_lines.any? %>
+  <table>
+    <thead>
+      <tr><th>項目</th><th class="right">数量</th><th class="right">単価</th><th class="right">小計</th></tr>
+    </thead>
+    <tbody>
+      <% @invoice.invoice_lines.each do |line| %>
+        <tr>
+          <td><%= line.description %></td>
+          <td class="right"><%= line.quantity %></td>
+          <td class="right">¥<%= number_with_delimiter(line.unit_price) %></td>
+          <td class="right">¥<%= number_with_delimiter(line.subtotal) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<p class="total right">合計: ¥<%= number_with_delimiter(@invoice.amount) %></p>
+
+<% if @invoice.bank_account %>
+  <p class="muted">お振込先: <%= @invoice.bank_account.label %></p>
+<% end %>
+
+<div class="notes">
+  <%= raw @invoice.notes %>
+</div>

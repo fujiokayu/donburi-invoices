@@ -1,0 +1,36 @@
+# Local stack. `db` alone is enough for native `bin/rails` development;
+# `web` builds the production image (same as Fargate) to mirror deployment.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: donburi_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: production
+      SECRET_KEY_BASE: local-development-secret-key-base-change-me
+      DATABASE_URL: postgres://postgres:postgres@db:5432/donburi_production
+      INVITE_CODE: ${INVITE_CODE:-dev-invite}
+      APP_HOST: ${APP_HOST:-localhost}
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
