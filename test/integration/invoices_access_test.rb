@@ -32,14 +32,27 @@ class InvoicesAccessTest < ActionDispatch::IntegrationTest
   end
 
   test "内部レンダリング用エンドポイントは存在しない" do
-    assert_raises(ActionController::RoutingError) { get "/pdf_render/#{@invoice_b.id}" }
+    get "/pdf_render/#{@invoice_b.id}"
+    assert_response :not_found
   end
 
-  test "請求書のメモはHTMLエスケープされる" do
+  test "PDF生成に渡すHTMLでは請求書のメモがエスケープされる" do
     login(@user_b)
-    @invoice_b.update!(notes: "<script>alert(1)</script>")
-    get invoice_path(@invoice_b)
-    assert_no_match "<script>alert(1)</script>", response.body
+    @invoice_b.update!(notes: "<iframe src=\"http://127.0.0.1/\"></iframe>")
+
+    captured = nil
+    original = PdfGenerator.method(:render_html)
+    PdfGenerator.define_singleton_method(:render_html) { |html| captured = html; "%PDF-stub" }
+    begin
+      get pdf_invoice_path(@invoice_b)
+    ensure
+      PdfGenerator.define_singleton_method(:render_html, original)
+    end
+
+    assert_response :success
+    assert_not_nil captured
+    assert_no_match "<iframe", captured
+    assert_includes captured, "&lt;iframe"
   end
 
   test "他テナントの銀行口座は請求書に指定できない" do

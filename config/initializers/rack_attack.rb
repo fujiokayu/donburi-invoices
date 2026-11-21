@@ -1,6 +1,6 @@
 # Rate limiting for the publicly hosted instance. Guards the auth endpoints
 # against brute force and gives crude flood protection, without affecting
-# normal use. Tuned so it never interferes with internal traffic.
+# normal use.
 class Rack::Attack
   # Self-contained store so throttling does not depend on the app's cache
   # configuration. State is per-process (the service runs a single task).
@@ -11,12 +11,6 @@ class Rack::Attack
   # rather than the edge address.
   def self.client_ip(req)
     ActionDispatch::Request.new(req.env).remote_ip
-  end
-
-  # Never limit internal loopback traffic (the PDF renderer calls back in).
-  safelist("allow-loopback") do |req|
-    ip = Rack::Attack.client_ip(req)
-    ip == "127.0.0.1" || ip == "::1"
   end
 
   # Optional operator safelist (comma/space separated IPs), e.g. a host used to
