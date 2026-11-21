@@ -31,8 +31,35 @@ class InvoicesAccessTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "内部レンダリング用エンドポイントは非ローカルからのアクセスを拒否する" do
-    get pdf_render_path(@invoice_b), headers: { "REMOTE_ADDR" => "203.0.113.9" }
-    assert_response :forbidden
+  test "内部レンダリング用エンドポイントは存在しない" do
+    get "/pdf_render/#{@invoice_b.id}"
+    assert_response :not_found
+  end
+
+  test "PDF生成に渡すHTMLでは請求書のメモがエスケープされる" do
+    login(@user_b)
+    @invoice_b.update!(notes: "<iframe src=\"http://127.0.0.1/\"></iframe>")
+
+    captured = nil
+    original = PdfGenerator.method(:render_html)
+    PdfGenerator.define_singleton_method(:render_html) { |html| captured = html; "%PDF-stub" }
+    begin
+      get pdf_invoice_path(@invoice_b)
+    ensure
+      PdfGenerator.define_singleton_method(:render_html, original)
+    end
+
+    assert_response :success
+    assert_not_nil captured
+    assert_no_match "<iframe", captured
+    assert_includes captured, "&lt;iframe"
+  end
+
+  test "他テナントの銀行口座は請求書に指定できない" do
+    account_a = @org_a.bank_accounts.create!(bank_name: "A銀行", account_number: "1", holder_name: "A")
+    login(@user_b)
+    patch invoice_path(@invoice_b), params: { invoice: { bank_account_id: account_a.id } }
+    assert_response :unprocessable_entity
+    assert_nil @invoice_b.reload.bank_account_id
   end
 end
