@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class InvoicesAccessTest < ActionDispatch::IntegrationTest
   setup do
@@ -31,8 +32,30 @@ class InvoicesAccessTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "内部レンダリング用エンドポイントは非ローカルからのアクセスを拒否する" do
-    get pdf_render_path(@invoice_b), headers: { "REMOTE_ADDR" => "203.0.113.9" }
-    assert_response :forbidden
+  # --- [修正] PDF 出力経由の SSRF / テナント越えの再発防止 ---------------------
+
+  test "テナントを絞り込まない内部レンダリング用エンドポイントは存在しない" do
+    assert_raises(ActionController::RoutingError) do
+      Rails.application.routes.recognize_path("/pdf_render/#{@invoice_b.id}")
+    end
+  end
+
+  test "PDF 出力: 備考の HTML はエスケープされ、他テナントの請求書は混入しない" do
+    invoice_a = @org_a.invoices.create!(
+      number: "A-2026-0001", customer_name: "A社の取引先",
+      notes: %(<iframe src="http://127.0.0.1:3000/pdf_render/#{@invoice_b.id}"></iframe>)
+    )
+    login(@user_a)
+
+    rendered = nil
+    PdfGenerator.stub(:render, ->(html) { rendered = html; "%PDF-" }) do
+      get pdf_invoice_path(invoice_a)
+    end
+
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert_not_includes rendered, "<iframe", "備考がタグとして解釈されてはいけない"
+    assert_includes rendered, "&lt;iframe"
+    assert_not_includes rendered, "B社の取引先"
   end
 end

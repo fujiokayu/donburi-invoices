@@ -1,32 +1,36 @@
 require "open3"
 
-# Converts a rendered invoice page into a PDF using wkhtmltopdf.
+# Converts rendered invoice HTML into a PDF using wkhtmltopdf.
 #
-# wkhtmltopdf fetches the given URL, renders it with its bundled WebKit, and
-# writes the PDF to stdout. The binary version is pinned by the Docker image.
+# [修正] 以前は wkhtmltopdf に内部 URL (http://127.0.0.1/pdf_render/:id) を渡し、
+# レンダラ自身にアプリへ HTTP で取りに行かせていた。そのため HTML に混入したタグ
+# (<iframe> 等) がサーバ内部からリクエストを発行できた (SSRF)。
+# 現在は、コントローラが描画した HTML 文字列を標準入力で渡すだけにしている。
+# The binary version is pinned by the Docker image.
 class PdfGenerator
   class RenderError < StandardError; end
-
-  # Base URL the PDF renderer uses to fetch the invoice's HTML.
-  def self.internal_base_url
-    ENV.fetch("INTERNAL_BASE_URL", "http://127.0.0.1:#{ENV.fetch('PORT', 3000)}")
-  end
 
   def self.binary
     ENV.fetch("WKHTMLTOPDF_PATH", "wkhtmltopdf")
   end
 
-  def self.render(url)
-    args = [
+  def self.command
+    [
       binary,
       "--encoding", "utf-8",
       "--page-size", "A4",
       "--quiet",
-      url,
-      "-" # write PDF to stdout
+      # [修正] 多層防御: 仮に HTML インジェクションが再発しても、
+      # JavaScript (XHR) や file:// を使った読み取りはさせない
+      "--disable-javascript",
+      "--disable-local-file-access",
+      "-", # read HTML from stdin (URL は渡さない)
+      "-"  # write PDF to stdout
     ]
+  end
 
-    out, err, status = Open3.capture3(*args, binmode: true)
+  def self.render(html)
+    out, err, status = Open3.capture3(*command, stdin_data: html, binmode: true)
     raise RenderError, "wkhtmltopdf failed (#{status.exitstatus}): #{err}" unless status.success?
 
     out

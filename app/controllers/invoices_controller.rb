@@ -46,9 +46,13 @@ class InvoicesController < ApplicationController
   end
 
   # Export the invoice as a PDF.
+  #
+  # [修正] @invoice は set_invoice で current_organization に絞り込み済み。
+  # その請求書だけを HTML に描画し、文字列として PdfGenerator に渡す。
+  # 以前のようにレンダラへ内部 URL を渡して取りに行かせることはしない。
   def pdf
-    url = "#{PdfGenerator.internal_base_url}/pdf_render/#{@invoice.id}"
-    data = PdfGenerator.render(url)
+    html = render_to_string(template: "invoices/pdf", layout: "pdf", formats: [:html])
+    data = PdfGenerator.render(html)
     AuditLog.record!(action: "invoice.pdf", user: current_user, target: @invoice, ip: client_ip)
     send_data data, filename: "#{@invoice.number}.pdf", type: "application/pdf", disposition: "attachment"
   end

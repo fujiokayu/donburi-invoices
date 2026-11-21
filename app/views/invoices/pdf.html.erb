@@ -31,6 +31,8 @@
   <p class="muted">お振込先: <%= @invoice.bank_account.label %></p>
 <% end %>
 
-<div class="notes">
-  <%= raw @invoice.notes %>
-</div>
+<%# [修正] raw をやめて通常どおりエスケープする。
+    改行はレイアウトの .notes { white-space: pre-wrap } で保持される。
+    「ブラウザに出さない画面だから」はエスケープを省略する理由にならない:
+    この HTML はサーバ内部の WebKit (wkhtmltopdf) が解釈する。 %>
+<div class="notes"><%= @invoice.notes %></div>
