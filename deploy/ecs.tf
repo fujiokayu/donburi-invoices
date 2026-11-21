@@ -33,7 +33,6 @@ resource "aws_ecs_task_definition" "app" {
         { name = "EXERCISE_BANNER", value = var.exercise_banner },
         { name = "WEB_CONCURRENCY", value = "1" },
         { name = "RAILS_MAX_THREADS", value = "5" },
-        { name = "INTERNAL_BASE_URL", value = "http://127.0.0.1:${var.container_port}" },
         { name = "TRUSTED_CLIENT_IPS", value = var.trusted_client_ips },
       ]
 

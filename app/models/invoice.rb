@@ -10,6 +10,7 @@ class Invoice < ApplicationRecord
 
   validates :number, presence: true, uniqueness: { scope: :organization_id }
   validates :customer_name, presence: true
+  validate :bank_account_belongs_to_organization
 
   before_validation :sync_amount_from_lines
 
@@ -20,6 +21,12 @@ class Invoice < ApplicationRecord
   end
 
   private
+
+  def bank_account_belongs_to_organization
+    return if bank_account.nil? || bank_account.organization_id == organization_id
+
+    errors.add(:bank_account, :invalid)
+  end
 
   # When line items are present they are the source of truth for the total.
   def sync_amount_from_lines

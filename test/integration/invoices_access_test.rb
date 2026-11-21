@@ -31,8 +31,22 @@ class InvoicesAccessTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "内部レンダリング用エンドポイントは非ローカルからのアクセスを拒否する" do
-    get pdf_render_path(@invoice_b), headers: { "REMOTE_ADDR" => "203.0.113.9" }
-    assert_response :forbidden
+  test "内部レンダリング用エンドポイントは存在しない" do
+    assert_raises(ActionController::RoutingError) { get "/pdf_render/#{@invoice_b.id}" }
+  end
+
+  test "請求書のメモはHTMLエスケープされる" do
+    login(@user_b)
+    @invoice_b.update!(notes: "<script>alert(1)</script>")
+    get invoice_path(@invoice_b)
+    assert_no_match "<script>alert(1)</script>", response.body
+  end
+
+  test "他テナントの銀行口座は請求書に指定できない" do
+    account_a = @org_a.bank_accounts.create!(bank_name: "A銀行", account_number: "1", holder_name: "A")
+    login(@user_b)
+    patch invoice_path(@invoice_b), params: { invoice: { bank_account_id: account_a.id } }
+    assert_response :unprocessable_entity
+    assert_nil @invoice_b.reload.bank_account_id
   end
 end

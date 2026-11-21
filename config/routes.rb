@@ -16,7 +16,5 @@ Rails.application.routes.draw do
     end
   end
 
-  get "pdf_render/:id" => "pdf_render#show", as: :pdf_render
-
   root "invoices#index"
 end

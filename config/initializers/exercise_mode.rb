@@ -8,7 +8,12 @@
 module Donburi
   module Exercise
     # Required to sign up. Rotate per event; publish with an expiry.
-    INVITE_CODE = ENV.fetch("INVITE_CODE", "dev-invite")
+    # No default in production so a forgotten setting cannot open sign-up.
+    INVITE_CODE = if Rails.env.production?
+                    ENV.fetch("INVITE_CODE")
+                  else
+                    ENV.fetch("INVITE_CODE", "dev-invite")
+                  end
 
     # Shown in the non-removable banner.
     BANNER_TEXT = ENV.fetch(

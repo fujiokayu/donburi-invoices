@@ -47,8 +47,8 @@ class InvoicesController < ApplicationController
 
   # Export the invoice as a PDF.
   def pdf
-    url = "#{PdfGenerator.internal_base_url}/pdf_render/#{@invoice.id}"
-    data = PdfGenerator.render(url)
+    html = render_to_string(template: "invoices/pdf", layout: "pdf", formats: [:html])
+    data = PdfGenerator.render_html(html)
     AuditLog.record!(action: "invoice.pdf", user: current_user, target: @invoice, ip: client_ip)
     send_data data, filename: "#{@invoice.number}.pdf", type: "application/pdf", disposition: "attachment"
   end
