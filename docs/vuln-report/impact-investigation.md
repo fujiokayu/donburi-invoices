@@ -1,6 +1,6 @@
 # 影響調査レポート（請求書情報の漏えい）
 
-脆弱性の内容と修正は `docs/vulun-report/report.md` を参照。本書は影響範囲の調査結果をまとめる。
+脆弱性の内容と修正は `report.md` を参照。本書は影響範囲の調査結果をまとめる。
 
 ## 結論
 - 調査できたのは、CloudWatch Logs から手動でエクスポートされた 200 行（2026-11-21 07:30:39〜07:43:27 UTC、JST 16:30〜16:43、約 13 分）のみ。**全期間の調査は未完了**。
@@ -67,7 +67,7 @@ fields @timestamp, @message
 - `invoices.notes` に `pdf_render`、`<iframe`、`127.0.0.1` を含む行を全件検索する。
 - `audit_logs` の `action = 'invoice.pdf'` を、ユーザー別・IP 別・時刻別に集計する。
 - ID 358 の作成者の user、organization、サインアップ日時、使った招待コードを確認する。
-- `bank_account_id` が他組織の口座を指す請求書を洗い出す（SQL は `docs/vulun-report/report.md`）。
+- `bank_account_id` が他組織の口座を指す請求書を洗い出す（SQL は `report.md`）。
 
 ### ログの範囲の確認
 - ロググループの保持期間、`storedBytes`、最古のログイベントの時刻を確認する。
